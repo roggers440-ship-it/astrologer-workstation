@@ -1,0 +1,131 @@
+.loaderContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 20px;
+  background-color: #0a0f1e;
+  min-height: 100vh;
+}
+
+.ambientGlow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 0, 127, 0.15) 0%, rgba(121, 40, 202, 0.1) 40%, rgba(0, 0, 0, 0) 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: 0;
+  opacity: 0;
+  animation: pulseAura 4s ease-in-out infinite alternate;
+  transition: opacity 2s ease;
+}
+
+.loaded .ambientGlow {
+  opacity: 1;
+}
+
+.ganeshaSvg {
+  width: 100%;
+  height: auto;
+  max-width: 380px;
+  z-index: 1;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
+  transition: filter 1s ease;
+}
+
+.ganeshaSvg path {
+  fill-opacity: 0;
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: drawOutline 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transition: fill-opacity 1.5s ease, stroke 1.5s ease, stroke-width 0.5s ease;
+}
+
+.ganeshaSvg g:nth-child(1) path {
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1.2;
+}
+
+.ganeshaSvg g:nth-child(2) path {
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1;
+  animation-delay: 0.5s;
+}
+
+.ganeshaSvg g:nth-child(3) path {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 0.8;
+  animation-delay: 1s;
+}
+
+/* Active State Styles */
+.active .ganeshaSvg {
+  filter: drop-shadow(0 0 8px #ff0037) drop-shadow(0 0 18px #7928ca);
+}
+
+.active .ganeshaSvg g:nth-child(1) path {
+  stroke: url(#light-gradient-1);
+  stroke-width: 1.8;
+}
+
+.active .ganeshaSvg g:nth-child(2) path {
+  stroke: url(#light-gradient-2);
+  stroke-width: 1.5;
+}
+
+.active .ganeshaSvg g:nth-child(3) path {
+  fill: #ffe3d1;
+  fill-opacity: 0.85;
+  stroke: #ffbd59;
+  filter: drop-shadow(0 0 5px #ffbd59);
+}
+
+@keyframes drawOutline {
+  0% { stroke-dashoffset: 2000; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes pulseAura {
+  0% { transform: scale(0.9); opacity: 0.3; }
+  100% { transform: scale(1.2); opacity: 0.8; }
+}
+.progressBox{
+  margin-top:20px
+}
+
+.progressBarBg {
+  width: 300px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressBarFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #00dfd8, #ff007f, #ffbd59);
+  border-radius: 10px;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px #ff007f;
+}
+
+.statusText {
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 300;
+}
+
+.percentage {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffbd59;
+}
