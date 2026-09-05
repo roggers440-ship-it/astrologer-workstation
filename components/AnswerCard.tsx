@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CalendarRange, ChevronDown, ChevronRight } from 'lucide-react';
-import type { Answer, Confidence } from '@/lib/answers';
+import type { PublicAnswer } from '@/types/reading';
 import { Badge } from '@/components/ui/badge';
 
 /**
@@ -16,16 +16,16 @@ import { Badge } from '@/components/ui/badge';
  * percentage chance. Nothing in a chart yields odds.
  */
 
-const CONFIDENCE_COLOUR: Record<Confidence, string> = {
+const CONFIDENCE_COLOUR: Record<string, string> = {
   Clear: 'rgb(var(--lapis))',
   Likely: 'rgb(var(--brass))',
   Mixed: 'rgb(var(--muted))',
   Weak: 'rgb(var(--vermilion))',
 };
 
-export function AnswerCard({ answer }: { answer: Answer }) {
+export function AnswerCard({ answer }: { answer: PublicAnswer }) {
   const [showClassical, setShowClassical] = useState(false);
-  const colour = CONFIDENCE_COLOUR[answer.confidence];
+  const colour = CONFIDENCE_COLOUR[answer.confidence] ?? 'rgb(var(--muted))';
 
   return (
     <article className="border-l-2 pl-3" style={{ borderColor: colour }}>

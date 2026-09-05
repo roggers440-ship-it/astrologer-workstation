@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase';
 
 const toClient = (r: any) => ({
   id: r.id,
@@ -44,7 +44,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ client
   }
 
   try {
-    const { data, error } = await supabaseAdmin()
+    const db = await supabaseServer();
+
+    const { data, error } = await db
       .from('clients')
       .update(patch)
       .eq('id', clientId)

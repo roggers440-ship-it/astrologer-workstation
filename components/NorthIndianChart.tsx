@@ -23,7 +23,12 @@ import {
 } from "@/lib/vedic-constants";
 import { functionalNature } from "@/lib/native-profile";
 import { ordinal } from "@/lib/rule-engine";
-import type { ActiveDasha } from "@/lib/dasha";
+/** Only what the ring needs. Keeps this component free of the dasha engine. */
+export interface RingPeriod {
+  maha: { lord: string };
+  antar?: { lord: string };
+  mahaProgress: number;
+}
 
 /**
  * North Indian (diamond) chart.
@@ -337,7 +342,7 @@ export function NorthIndianChart({
   onSelectHouse,
 }: {
   chart: ChartData;
-  active?: ActiveDasha | null;
+  active?: RingPeriod | null;
   className?: string;
   /** When set, the chart doubles as a navigator for the house analysis. */
   selectedHouse?: HouseNumber | null;

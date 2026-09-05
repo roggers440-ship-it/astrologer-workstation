@@ -96,7 +96,7 @@ function ContactCell({
         }}
       />
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon-xs"
         onClick={save}
         disabled={saving}
@@ -105,7 +105,7 @@ function ContactCell({
         <Check className="h-3 w-3" />
       </Button>
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon-xs"
         onClick={() => setEditing(false)}
         aria-label="Cancel"
@@ -162,7 +162,7 @@ export function ClientTableDialog({
       <DialogTrigger render={children} />
 
       <DialogContent className="panel flex h-[88vh] min-w-[85vw] max-w-[1200px] flex-col shadow-xl p-0">
-        <DialogHeader className="flex-row items-center justify-between gap-4 border-b border-[rgb(var(--hairline))] px-4 py-3">
+        <DialogHeader className="flex-row items-center justify-between gap-4 border-b border-[rgb(var(--hairline))] px-4 py-3 ">
           <DialogTitle className="text-[rgb(var(--ivory))]">
             All clients
             <span className="data ml-2 text-[11px] text-[rgb(var(--muted))]">
@@ -175,7 +175,7 @@ export function ClientTableDialog({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search name, place or contact"
             aria-label="Search clients"
-            className="data w-64 rounded border border-[rgb(var(--hairline))] bg-transparent px-2 py-1 text-[11px] text-[rgb(var(--ivory))] placeholder:text-[rgb(var(--muted))]"
+            className="data w-64 mr-10 rounded border border-[rgb(var(--hairline))] bg-transparent px-2 py-1 text-[11px] text-[rgb(var(--ivory))] placeholder:text-[rgb(var(--muted))]"
           />
         </DialogHeader>
 
@@ -243,7 +243,7 @@ export function ClientTableDialog({
                       </td>
                       <td className="px-3 py-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="xs"
                           onClick={() => {
                             onSelect(c);

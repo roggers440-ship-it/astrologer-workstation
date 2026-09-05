@@ -22,15 +22,20 @@ import { Button } from "@/components/ui/button";
  * - it is easy to write a summary that quietly absorbs a correction.
  */
 export function ConsultationNoteComposer() {
-  const { client, activeTab, hooks, notes, setNotes } = useWorkstation();
+  const { client, activeTab, reading, notes, setNotes } = useWorkstation();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const group = TAB_GROUPS.find((g) => g.key === activeTab)!;
-  const discussed = group.topicIds.filter((id) =>
-    hooks.some((h) => h.topicId === id),
-  );
+
+  /* Pre-tick the topics that actually had something to show. A locked topic
+     arrives as a teaser rather than as answers, so it is not offered here - you
+     cannot have discussed what was never on screen. */
+  const discussed = group.topicIds.filter((id) => {
+    const entry = reading?.topics[id];
+    return Boolean(entry && !("locked" in entry && entry.locked));
+  });
   const [selected, setSelected] = useState<number[]>(discussed);
 
   if (!client) return null;
@@ -71,7 +76,7 @@ export function ConsultationNoteComposer() {
       <DialogTrigger
         render={
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             className="w-full justify-start gap-2 rounded-none border-t border-[rgb(var(--hairline))] py-3"
           />

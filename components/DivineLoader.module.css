@@ -6,7 +6,7 @@
   justify-content: center;
   width: 100%;
   padding: 20px;
-  background-color: #0a0f1e;
+  background-color: var(--divine-loader-bg, rgb(var(--ink)));
   min-height: 100vh;
 }
 
@@ -99,7 +99,7 @@
 .progressBarBg {
   width: 300px;
   height: 5px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--divine-progress-bg);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -120,7 +120,7 @@
   font-size: 0.85rem;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--divine-loader-text);
   font-weight: 300;
 }
 

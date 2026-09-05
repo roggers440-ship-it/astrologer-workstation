@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Loader2, RefreshCw, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Written analysis, generated from the computed facts.
@@ -17,10 +17,10 @@ export function AnalysisSection({
   clientId,
   mode,
   scope,
-  label = 'Written analysis',
+  label = "Written analysis",
 }: {
   clientId: string;
-  mode: 'overview' | 'house' | 'topic';
+  mode: "overview" | "house" | "topic";
   scope?: number;
   label?: string;
 }) {
@@ -34,18 +34,19 @@ export function AnalysisSection({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/analysis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clientId, mode, scope, force }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'The analysis could not be generated.');
+      if (!res.ok)
+        throw new Error(data.error ?? "The analysis could not be generated.");
       setContent(data.content);
       setModel(data.model);
       setCached(Boolean(data.cached));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,12 @@ export function AnalysisSection({
 
   if (!content && !loading && !error) {
     return (
-      <Button variant="ghost" size="sm" className="gap-2" onClick={() => generate()}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-2"
+        onClick={() => generate()}
+      >
         <Sparkles className="h-3.5 w-3.5" /> {label}
       </Button>
     );
@@ -73,7 +79,12 @@ export function AnalysisSection({
             </Badge>
           )}
           {content && (
-            <Button variant="ghost" size="icon-xs" onClick={() => generate(true)} aria-label="Rewrite, ignoring the saved copy">
+            <Button
+              variant="outline"
+              size="icon-xs"
+              onClick={() => generate(true)}
+              aria-label="Rewrite, ignoring the saved copy"
+            >
               <RefreshCw className="h-3 w-3" />
             </Button>
           )}
@@ -97,8 +108,9 @@ export function AnalysisSection({
           </div>
 
           <p className="data mt-3 border-t border-[rgb(var(--hairline))] pt-2 text-[10px] text-[rgb(var(--muted))]">
-            Written by {model} from the computed chart below. It weighs and phrases; it does not calculate.
-            Check anything that matters against the figures.
+            Written by {model} from the computed chart below. It weighs and
+            phrases; it does not calculate. Check anything that matters against
+            the figures.
           </p>
         </>
       )}

@@ -1,28 +1,23 @@
 'use client';
 
 import { create } from 'zustand';
-import type {
-  Client, ConsultationHook, ConsultationNote, NatalChart, TimelineMarker, Varga,
-} from '@/types/astrology';
-import { evaluateRules } from '@/lib/rule-engine';
-import { ALL_RULES } from '@/lib/rules';
-import { buildTimeline } from '@/lib/timeline';
-import { detectYogas } from '@/lib/yogas';
-import type { Yoga } from '@/lib/yogas';
+import type { Client, ConsultationNote, NatalChart, Varga } from '@/types/astrology';
+import type { Reading } from '@/types/reading';
 import type { TabKey } from '@/lib/topics';
 
 interface WorkstationState {
   client: Client | null;
+  /**
+   * Positions only, used to draw the wheel. Interpretation no longer comes from
+   * here - it comes from the server already filtered by plan, because anything
+   * computed in the browser can be recomputed by the reader.
+   */
   natal: NatalChart | null;
-  hooks: ConsultationHook[];
-  /** Chart-wide named combinations. Computed once per client, not per topic. */
-  yogas: Yoga[];
-  timeline: TimelineMarker[];
+  reading: Reading | null;
   notes: ConsultationNote[];
 
   activeVarga: Varga;
   activeTab: TabKey;
-  /** Longevity stays hidden until deliberately unlocked. Resets on client change. */
   confidentialUnlocked: boolean;
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
@@ -30,7 +25,6 @@ interface WorkstationState {
   loadChart: (client: Client) => Promise<void>;
   setVarga: (v: Varga) => void;
   setTab: (t: TabKey) => void;
-  /** Returns false on a wrong passphrase so the caller can show an error. */
   unlockConfidential: (passphrase: string) => boolean;
   lockConfidential: () => void;
   setNotes: (notes: ConsultationNote[]) => void;
@@ -40,9 +34,7 @@ interface WorkstationState {
 export const useWorkstation = create<WorkstationState>((set) => ({
   client: null,
   natal: null,
-  hooks: [],
-  yogas: [],
-  timeline: [],
+  reading: null,
   notes: [],
   activeVarga: 'D1',
   activeTab: 'life',
@@ -52,16 +44,24 @@ export const useWorkstation = create<WorkstationState>((set) => ({
 
   async loadChart(client) {
     set({ status: 'loading', error: null, client, confidentialUnlocked: false });
+
     try {
-      const res = await fetch(`/api/chart/${client.id}`, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`Could not compute the chart (${res.status}).`);
-      const natal: NatalChart = await res.json();
+      /* Both in parallel: the wheel needs positions, everything else needs the
+         gated reading, and neither depends on the other. */
+      const [chartRes, readingRes] = await Promise.all([
+        fetch(`/api/chart/${client.id}`, { cache: 'no-store' }),
+        fetch(`/api/reading/${client.id}`, { cache: 'no-store' }),
+      ]);
+
+      if (!chartRes.ok) throw new Error(`Could not compute the chart (${chartRes.status}).`);
+      if (!readingRes.ok) {
+        const payload = await readingRes.json().catch(() => ({}));
+        throw new Error(payload.error ?? `Could not build the reading (${readingRes.status}).`);
+      }
 
       set({
-        natal,
-        hooks: evaluateRules(natal.charts.D1, ALL_RULES),
-        yogas: detectYogas(natal.charts.D1),
-        timeline: buildTimeline(natal, { yearsBack: 10, yearsForward: 10 }),
+        natal: await chartRes.json(),
+        reading: await readingRes.json(),
         status: 'ready',
       });
     } catch (e) {
@@ -71,6 +71,7 @@ export const useWorkstation = create<WorkstationState>((set) => ({
 
   setVarga: (activeVarga) => set({ activeVarga }),
   setTab: (activeTab) => set({ activeTab }),
+
   unlockConfidential: (passphrase) => {
     const required = process.env.NEXT_PUBLIC_CONFIDENTIAL_PASSPHRASE;
     if (required && passphrase !== required) return false;
@@ -80,5 +81,5 @@ export const useWorkstation = create<WorkstationState>((set) => ({
 
   lockConfidential: () => set({ confidentialUnlocked: false }),
   setNotes: (notes) => set({ notes }),
-  clear: () => set({ client: null, natal: null, hooks: [], yogas: [], timeline: [], notes: [], status: 'idle' }),
+  clear: () => set({ client: null, natal: null, reading: null, notes: [], status: 'idle' }),
 }));

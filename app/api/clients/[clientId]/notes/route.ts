@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase';
 
 const toNote = (r: any) => ({
   id: r.id,
@@ -26,7 +26,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ clientI
   const { clientId } = await params;
 
   try {
-    const { data, error } = await supabaseAdmin()
+    const db = await supabaseServer();
+
+    const { data, error } = await db
       .from('consultation_notes')
       .select('*')
       .eq('client_id', clientId)
@@ -42,9 +44,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ clientI
 export async function POST(req: Request, { params }: { params: Promise<{ clientId: string }> }) {
   const { clientId } = await params;
   const body = await req.json();
+  const db = await supabaseServer();
+
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Not signed in.' }, { status: 401 });
 
   try {
-    const { data, error } = await supabaseAdmin()
+    const { data, error } = await db
       .from('consultation_notes')
       .insert({
         client_id: clientId,

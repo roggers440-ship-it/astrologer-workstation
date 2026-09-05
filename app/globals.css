@@ -30,7 +30,16 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
+  /*
+    Points at --surface-muted, not --muted.
+
+    shadcn uses --muted as a background colour; the workstation palette below
+    uses --muted as an RGB triplet for secondary text. Both were called --muted
+    and the palette won, so Tailwind was emitting `background-color: 138 148 176`
+    - not a valid colour - and every `bg-muted` silently did nothing. That is
+    what ghost button hovers use, which is why they appeared dead.
+  */
+  --color-muted: var(--surface-muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
@@ -59,7 +68,7 @@
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
+  --surface-muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
@@ -94,7 +103,7 @@
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
+  --surface-muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
@@ -129,31 +138,6 @@
   }
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/*
-  Direction: an instrument panel, not a website. The subject is a practitioner
-  reading dense data live in front of a client, so the surface stays dark and
-  quiet and the only bright thing on screen is the currently running dasha.
-
-  Palette
-    --ink        #0A0F1E  ground, deep indigo-black (an evening sky, not grey)
-    --panel      #121A2E  raised panel
-    --hairline   #26314F  1px rules; structure is drawn, never boxed in shadow
-    --ivory      #E9E4D6  primary text, warm paper against cold ground
-    --muted      #8A94B0  labels, degrees, secondary data
-    --brass      #C89B3C  the live dasha, and nothing else
-    --lapis      #5B8AE6  benefic emphasis, links
-    --vermilion  #C2543F  debilitation and confidential flags, used sparingly
-
-  Type
-    --font-data  IBM Plex Mono   dominant utility face; degrees, houses and dates
-                                 are the actual content of this tool
-    --font-prose Public Sans     interpretive guidelines meant to be read aloud
-    --font-display Bricolage Grotesque  panel headers only, at small sizes
-*/
 
 :root {
   --ink: 10 15 30;
@@ -164,10 +148,56 @@
   --brass: 200 155 60;
   --lapis: 91 138 230;
   --vermilion: 194 84 63;
+  --divine-loader-bg: #0a0f1e;
+  --divine-loader-text: rgba(255, 255, 255, 0.6);
+  --divine-progress-bg:rgba(255, 255, 255, 0.1);
 
   --font-data: 'IBM Plex Mono', ui-monospace, monospace;
   --font-prose: 'Public Sans', system-ui, sans-serif;
   --font-display: 'Bricolage Grotesque', var(--font-prose);
+}
+
+/*
+  Light theme. One block rather than two - the palette and the shadcn tokens
+  belong to the same switch and splitting them invites one being edited without
+  the other.
+
+  Same palette rotated rather than inverted. A straight inversion turns brass
+  into a washed yellow that fails contrast on white, so the accents are darkened
+  independently: parchment ground, ink text, deeper brass.
+*/
+:root.light {
+  --ink: 244 241 232;
+  --panel: 253 251 246;
+  --hairline: 214 208 193;
+  --ivory: 26 32 48;
+  --muted: 106 112 130;
+  --brass: 150 108 24;
+  --lapis: 42 82 168;
+  --vermilion: 168 52 38;
+  /* The loader follows the page rather than staying dark against parchment. */
+  --divine-loader-bg: #f4f1e8;
+  --divine-loader-text: rgba(2, 2, 2, 0.6);
+  --divine-progress-bg:rgba(0, 0, 0, 0.315);
+
+  --background: #F4F1E8;
+  --foreground: #1A2030;
+  --card: #FDFBF6;
+  --card-foreground: #1A2030;
+  --popover: #FDFBF6;
+  --popover-foreground: #1A2030;
+  --primary: #966C18;
+  --primary-foreground: #FDFBF6;
+  --secondary: #E7E2D4;
+  --secondary-foreground: #1A2030;
+  --surface-muted: #E7E2D4;
+  --muted-foreground: #6A7082;
+  --accent: #E7E2D4;
+  --accent-foreground: #1A2030;
+  --destructive: #A83426;
+  --border: #D6D0C1;
+  --input: #D6D0C1;
+  --ring: #966C18;
 }
 
 body {
@@ -182,8 +212,9 @@ body {
   background-color: rgb(var(--panel));
   border: 1px solid rgb(var(--hairline));
 }
-.panel-light{
-   background-color: rgb(var(--hairline));
+
+.panel-light {
+  background-color: rgb(var(--hairline));
   border: 1px solid rgb(var(--muted));
 }
 
@@ -208,22 +239,36 @@ body {
   outline-offset: 2px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+/* House cells are focusable for keyboard navigation, but the ring is drawn by
+   the polygon's own stroke rather than by an outline that would sit outside it. */
+polygon:focus {
+  outline: none;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+  Date and time pickers ship a dark glyph. Inverting it is only correct on a dark
+  ground - in light mode the unconditional invert made it white on parchment and
+  effectively invisible.
+*/
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) brightness(2); /* makes it light/white — adjust as needed */
   cursor: pointer;
   opacity: 0.7;
+}
+
+:root:not(.light) input[type="date"]::-webkit-calendar-picker-indicator,
+:root:not(.light) input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="time"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
-}
-
-polygon:focus{
-  outline: none;
 }

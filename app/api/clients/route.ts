@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase';
+import { requireSession, denyUpgrade } from '@/lib/session';
+import { TIER_CHARTS } from '@/lib/entitlements';
 
 const toClient = (r: any) => ({
   id: r.id,
@@ -17,8 +19,8 @@ const toClient = (r: any) => ({
 
 /**
  * Failures print the real Postgres error to the terminal. The browser gets a
- * plain sentence in production, but in development it gets the detail too -
- * debugging a save failure through a generic message wastes an afternoon.
+ * plain sentence in production and the detail in development - debugging a save
+ * failure through a generic message wastes an afternoon.
  */
 function fail(where: string, error: unknown, friendly: string) {
   console.error(`[api/clients] ${where}:`, error);
@@ -30,8 +32,14 @@ function fail(where: string, error: unknown, friendly: string) {
 }
 
 export async function GET() {
+  const { session, deny } = await requireSession();
+  if (deny) return deny;
+
   try {
-    const { data, error } = await supabaseAdmin()
+    const db = await supabaseServer();
+    /* No practitioner filter here on purpose: row level security applies it, and
+       duplicating the rule in application code is how the two drift apart. */
+    const { data, error } = await db
       .from('clients')
       .select('*')
       .order('created_at', { ascending: false });
@@ -44,6 +52,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const { session, deny } = await requireSession();
+  if (deny) return deny;
+
   const body = await req.json();
 
   if (!body.fullName || !body.dob || !body.birthTime || !body.timezone) {
@@ -51,9 +62,30 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { data, error } = await supabaseAdmin()
+    const db = await supabaseServer();
+
+    /*
+     * The chart limit is counted server-side against rows this account owns.
+     * Counting in the browser would be a suggestion; counting here is the rule.
+     */
+    const { count } = await db
+      .from('clients')
+      .select('id', { count: 'exact', head: true })
+      .eq('practitioner_id', session.userId);
+
+    if ((count ?? 0) >= session.entitlements.chartLimit) {
+      return denyUpgrade(
+        `Your plan includes ${TIER_CHARTS[session.entitlements.tier].toLowerCase()}`,
+        session.entitlements.tier === 'free' || session.entitlements.tier === 'basic' ? 'pro' : 'max',
+      );
+    }
+
+    const user = { id: session.userId };
+
+    const { data, error } = await db
       .from('clients')
       .insert({
+        practitioner_id: user.id,
         full_name: body.fullName,
         dob: body.dob,
         birth_time: body.birthTime,

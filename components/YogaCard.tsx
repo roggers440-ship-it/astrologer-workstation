@@ -2,8 +2,17 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, TriangleAlert } from 'lucide-react';
-import type { Provenance, Yoga } from '@/lib/yogas';
-import { ordinal } from '@/lib/rule-engine';
+type PublicYoga = {
+  name: string;
+  strength: string;
+  provenance: string;
+  reading: string;
+  caveat?: string;
+  participants: string[];
+  classicalClaim?: string;
+  literalMeaning?: string;
+  source?: string;
+};
 import { Badge } from '@/components/ui/badge';
 
 /**
@@ -16,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
  * would be a claim the tradition does not actually support today.
  */
 
-const PROVENANCE_STYLE: Record<Provenance, { label: string; colour: string; note: string }> = {
+const PROVENANCE_STYLE: Record<string, { label: string; colour: string; note: string }> = {
   classical: {
     label: 'Classical',
     colour: 'rgb(var(--lapis))',
@@ -34,9 +43,9 @@ const PROVENANCE_STYLE: Record<Provenance, { label: string; colour: string; note
   },
 };
 
-export function YogaCard({ yoga }: { yoga: Yoga }) {
+export function YogaCard({ yoga }: { yoga: PublicYoga }) {
   const [showClassical, setShowClassical] = useState(false);
-  const prov = PROVENANCE_STYLE[yoga.provenance];
+  const prov = PROVENANCE_STYLE[yoga.provenance] ?? PROVENANCE_STYLE.classical;
 
   const strengthColour =
     yoga.strength === 'Strong' ? 'rgb(var(--brass))'
@@ -54,10 +63,10 @@ export function YogaCard({ yoga }: { yoga: Yoga }) {
       </header>
 
       <p className="data mb-1 text-[10px] text-[rgb(var(--muted))]">
-        {yoga.participants.join(' \u00b7 ')} &middot; houses {yoga.houses.map(ordinal).join(', ')}
+        {yoga.participants.join(' \u00b7 ')}
       </p>
 
-      <p className="text-[rgb(var(--ivory))]">{yoga.modernReading}</p>
+      <p className="text-[rgb(var(--ivory))]">{yoga.reading}</p>
 
       {yoga.caveat && (
         <p className="mt-1 flex items-start gap-1.5 text-[11px] text-[rgb(var(--vermilion))]">
@@ -66,6 +75,7 @@ export function YogaCard({ yoga }: { yoga: Yoga }) {
         </p>
       )}
 
+      {yoga.classicalClaim && (
       <button
         onClick={() => setShowClassical((v) => !v)}
         aria-expanded={showClassical}
@@ -74,8 +84,9 @@ export function YogaCard({ yoga }: { yoga: Yoga }) {
         {showClassical ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         Classical text
       </button>
+      )}
 
-      {showClassical && (
+      {showClassical && yoga.classicalClaim && (
         <div className="mt-1.5 space-y-2 border-l border-[rgb(var(--hairline))] pl-2.5">
           <div>
             <span className="eyebrow block">What the texts claim</span>

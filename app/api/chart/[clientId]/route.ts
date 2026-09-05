@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { computeNatalChart } from '@/lib/astro-api';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase';
+import { requireSession } from '@/lib/session';
 import type { Client } from '@/types/astrology';
 
 /**
@@ -13,8 +14,12 @@ import type { Client } from '@/types/astrology';
 export async function GET(_req: Request, { params }: { params: Promise<{ clientId: string }> }) {
   const { clientId } = await params;
 
+  const { session, deny } = await requireSession();
+  if (deny) return deny;
+
   try {
-    const { data, error } = await supabaseAdmin().from('clients').select('*').eq('id', clientId).single();
+    const db = await supabaseServer();
+    const { data, error } = await db.from('clients').select('*').eq('id', clientId).single();
 
     if (error || !data) {
       console.error('[api/chart] client lookup:', error);
@@ -35,7 +40,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ clientI
     };
 
     const natal = await computeNatalChart(client);
-    return NextResponse.json(natal, { headers: { 'Cache-Control': 'private, max-age=3600' } });
+
+    /*
+     * This route exists to draw the chart wheel, not to read it. Without the
+     * timing entitlement the dasha tree is removed entirely - it is a complete
+     * timeline of the life, and shipping it to a free account would hand over
+     * the one thing that plan is paying to unlock.
+     */
+    const payload = session.entitlements.timing
+      ? natal
+      : { ...natal, dashaTree: [], transits: [] };
+
+    return NextResponse.json(payload, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (e) {
     console.error('[api/chart] compute:', e);
     const message = e instanceof Error ? e.message : 'Chart calculation failed.';

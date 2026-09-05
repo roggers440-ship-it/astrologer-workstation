@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState, type ReactNode } from 'react';
-import { Eye, EyeOff, Lock } from 'lucide-react';
-import { useWorkstation } from '@/store/chart-store';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState, type ReactNode } from "react";
+import { Eye, EyeOff, Lock } from "lucide-react";
+import { useWorkstation } from "@/store/chart-store";
+import { Button } from "@/components/ui/button";
 
 /**
  * Gate for material that must not be on screen by default: the longevity band and
@@ -28,8 +28,9 @@ export function ConfidentialGate({
   label: string;
   children: ReactNode;
 }) {
-  const { confidentialUnlocked, unlockConfidential, lockConfidential } = useWorkstation();
-  const [entry, setEntry] = useState('');
+  const { confidentialUnlocked, unlockConfidential, lockConfidential } =
+    useWorkstation();
+  const [entry, setEntry] = useState("");
   const [error, setError] = useState(false);
 
   /* Configured passphrase. With none set the gate stays a plain reveal, so an
@@ -38,7 +39,10 @@ export function ConfidentialGate({
 
   useEffect(() => {
     if (!confidentialUnlocked) return;
-    const timer = setTimeout(() => lockConfidential(), AUTO_LOCK_MINUTES * 60_000);
+    const timer = setTimeout(
+      () => lockConfidential(),
+      AUTO_LOCK_MINUTES * 60_000,
+    );
     return () => clearTimeout(timer);
   }, [confidentialUnlocked, lockConfidential]);
 
@@ -46,11 +50,17 @@ export function ConfidentialGate({
     return (
       <div className="space-y-2">
         {children}
-        <Button variant="ghost" size="sm" className="gap-1.5" onClick={lockConfidential}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={lockConfidential}
+        >
           <EyeOff className="h-3.5 w-3.5" /> Hide
         </Button>
         <p className="text-[10px] text-[rgb(var(--muted))]">
-          Relocks automatically after {AUTO_LOCK_MINUTES} minutes, and whenever you load another client.
+          Relocks automatically after {AUTO_LOCK_MINUTES} minutes, and whenever
+          you load another client.
         </p>
       </div>
     );
@@ -58,7 +68,12 @@ export function ConfidentialGate({
 
   if (!required) {
     return (
-      <Button variant="ghost" size="sm" className="gap-2" onClick={() => unlockConfidential('')}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-2"
+        onClick={() => unlockConfidential("")}
+      >
         <Eye className="h-3.5 w-3.5" /> {label}
       </Button>
     );
@@ -71,7 +86,7 @@ export function ConfidentialGate({
         e.preventDefault();
         const ok = unlockConfidential(entry);
         setError(!ok);
-        setEntry('');
+        setEntry("");
       }}
     >
       <div className="flex items-center gap-1.5">
@@ -88,12 +103,16 @@ export function ConfidentialGate({
           autoComplete="off"
           className="data w-32 rounded border border-[rgb(var(--hairline))] bg-transparent px-2 py-1 text-[11px] text-[rgb(var(--ivory))] placeholder:text-[rgb(var(--muted))]"
         />
-        <Button type="submit" variant="ghost" size="sm" className="gap-1.5">
+        <Button type="submit" variant="outline" size="sm" className="gap-1.5">
           <Eye className="h-3.5 w-3.5" /> Unlock
         </Button>
       </div>
 
-      {error && <p className="text-[11px] text-[rgb(var(--vermilion))]">Wrong passphrase.</p>}
+      {error && (
+        <p className="text-[11px] text-[rgb(var(--vermilion))]">
+          Wrong passphrase.
+        </p>
+      )}
     </form>
   );
 }

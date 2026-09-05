@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase';
+import { requireSession, denyUpgrade } from '@/lib/session';
 import { computeNatalChart } from '@/lib/astro-api';
 import { getLanguageModel } from '@/lib/llm/provider';
 import { buildBrief, factHash, instructionFor, type AnalysisMode } from '@/lib/llm/brief';
@@ -27,6 +28,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'clientId and mode are required.' }, { status: 400 });
   }
 
+  const { session, deny } = await requireSession();
+  if (deny) return deny;
+
+  /* Generated analysis is the only per-user cost in the application, so it is
+     also the cleanest thing to put behind the first paid tier. */
+  if (!session.entitlements.analysis) {
+    return denyUpgrade('The written analysis', 'basic');
+  }
+
   const model = getLanguageModel();
   if (!model) {
     return NextResponse.json(
@@ -35,7 +45,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
 
   try {
     const { data: row, error } = await db.from('clients').select('*').eq('id', clientId).single();
