@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import { PLANS, type Tier } from "@/lib/entitlements";
@@ -27,7 +27,7 @@ const PRICE_LABEL: Record<Tier, string> = {
   max: "Rs 14,999 a year",
 };
 
-export default function PlansPage() {
+function PlansContent() {
   const params = useSearchParams();
   const [busy, setBusy] = useState<Tier | null>(null);
   const [currentTier, setCurrentTier] = useState<Tier>("free");
@@ -221,5 +221,13 @@ export default function PlansPage() {
         </form>
       )}
     </main>
+  );
+}
+
+export default function PlansPage() {
+  return (
+    <Suspense fallback={null}>
+      <PlansContent />
+    </Suspense>
   );
 }
