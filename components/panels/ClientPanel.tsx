@@ -334,6 +334,7 @@ export function ClientPanel() {
           {!natal && status !== "loading" && (
             <div className="min-h-[280px] flex-1">
               <PanelEmpty
+                height="min-h-[70vh]"
                 mark="chart"
                 title="No chart yet"
                 line="Pick a client above. Everything else on screen fills in from here."
@@ -388,7 +389,7 @@ export function ClientPanel() {
 
               <div className="flex items-center gap-1">
                 <HistoryDrawer />
-                <BirthTimeDialog>
+                {/* <BirthTimeDialog>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -396,7 +397,7 @@ export function ClientPanel() {
                   >
                     <Clock3 className="h-3.5 w-3.5" /> Birth time
                   </Button>
-                </BirthTimeDialog>
+                </BirthTimeDialog> */}
 
                 <HouseAnalysisDialog
                   chart={natal.charts.D1}
@@ -408,7 +409,7 @@ export function ClientPanel() {
                     size="sm"
                     className="flex-1 justify-start gap-2"
                   >
-                    <Grid3x3 className="h-3.5 w-3.5" /> Houses
+                    <Grid3x3 className="h-3.5 w-3.5" /> Houses Analysis
                   </Button>
                 </HouseAnalysisDialog>
                 <MedicalDialog

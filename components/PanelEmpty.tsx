@@ -93,15 +93,19 @@ export function PanelEmpty({
   mark,
   title,
   line,
+  height,
 }: {
   mark: Mark;
   title: string;
   line: string;
+  height: string;
 }) {
   const Drawn = MARKS[mark];
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden p-6">
+    <div
+      className={`relative flex h-full w-full flex-col items-center justify-center overflow-hidden p-6 ${height}`}
+    >
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
         aria-hidden
