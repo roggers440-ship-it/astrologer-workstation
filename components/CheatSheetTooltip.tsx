@@ -30,7 +30,7 @@ export function CheatSheetTooltip({
   children,
 }: CheatSheetTooltipProps) {
   return (
-    <TooltipProvider delayDuration={200}>
+    <TooltipProvider delay={200}>
       <Tooltip>
         <TooltipTrigger render={<span className="cheat-term" tabIndex={0} />}>
           {children}

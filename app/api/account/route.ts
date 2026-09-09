@@ -41,7 +41,6 @@ export async function GET() {
   const options = (['basic', 'pro', 'max'] as Tier[]).map((tier) => ({
     tier,
     label: PLANS[tier].label,
-    listPrice: priceFor(tier).amount,
     months: priceFor(tier).months,
     ...planChange(current, tier, priceFor(tier).amount),
   }));

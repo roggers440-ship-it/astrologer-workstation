@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import DivineLoader from '@/components/DivineLoader';
-import { useWorkstation } from '@/store/chart-store';
-import { ClientPanel } from '@/components/panels/ClientPanel';
-import { PatternsPanel } from '@/components/panels/PatternsPanel';
-import { TopicsPanel } from '@/components/panels/TopicsPanel';
+import { useEffect, useState } from "react";
+import DivineLoader from "@/components/DivineLoader";
+import { useWorkstation } from "@/store/chart-store";
+import { ClientPanel } from "@/components/panels/ClientPanel";
+import { PatternsPanel } from "@/components/panels/PatternsPanel";
+import { TopicsPanel } from "@/components/panels/TopicsPanel";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
-} from '@/components/ui/resizable';
+} from "@/components/ui/resizable";
 
 export default function DashboardClient() {
   const loadClients = useWorkstation((s) => s.loadClients);
@@ -40,7 +40,7 @@ export default function DashboardClient() {
 
   return (
     <main className="h-screen w-screen overflow-hidden bg-[rgb(var(--ink))] p-2">
-      <ResizablePanelGroup direction="horizontal">
+      <ResizablePanelGroup>
         <ResizablePanel defaultSize={35} minSize={20}>
           <ClientPanel />
         </ResizablePanel>

@@ -227,7 +227,7 @@ function PlanetBadge({
         : "";
 
   return (
-    <TooltipProvider delayDuration={120}>
+    <TooltipProvider delay={120}>
       <Tooltip>
         <TooltipTrigger
           // nativeButton={false}
