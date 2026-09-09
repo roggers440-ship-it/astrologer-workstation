@@ -256,174 +256,179 @@ export function ClientPanel() {
   }
 
   return (
-    <section className="panel flex h-full w-full flex-col gap-3 overflow-y-auto p-3">
-      <header className="flex items-center justify-between gap-2">
-        <PlanBadge />
-        <div className="flex shrink-0 items-center gap-1">
-          {/* Settings rather than a bare sign-out icon. An unlabelled exit next
+    <section className="panel flex h-full w-full flex-col gap-3 overflow-hidden p-3">
+      <ScrollArea className="h-full">
+        <div className="space-y-6 p-4">
+          <header className="flex items-center justify-between gap-2">
+            <PlanBadge />
+            <div className="flex shrink-0 items-center gap-1">
+              {/* Settings rather than a bare sign-out icon. An unlabelled exit next
               to New and View all is a mis-click waiting to happen, and it was
               also the only route to billing. */}
-          <a href="/settings" aria-label="Account and plan">
-            <Button variant="ghost" size="icon-sm">
-              <Settings className="h-3.5 w-3.5" />
-            </Button>
-          </a>
+              <a href="/settings" aria-label="Account and plan">
+                <Button variant="ghost" size="icon-sm">
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+              </a>
 
-          <ClientTableDialog
-            clients={clients}
-            onUpdated={(updated) =>
-              setClients((prev) =>
-                prev.map((c) => (c.id === updated.id ? updated : c)),
-              )
-            }
-            onSelect={loadChart}
-          >
-            <Button variant="ghost" size="sm" className="gap-1.5">
-              <Table2 className="h-3.5 w-3.5" /> View all
-            </Button>
-          </ClientTableDialog>
+              <ClientTableDialog
+                clients={clients}
+                onUpdated={(updated) =>
+                  setClients((prev) =>
+                    prev.map((c) => (c.id === updated.id ? updated : c)),
+                  )
+                }
+                onSelect={loadChart}
+              >
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Table2 className="h-3.5 w-3.5" /> View all
+                </Button>
+              </ClientTableDialog>
 
-          <NewClientDialog
-            onCreated={(c) => {
-              setClients((prev) => [c, ...prev]);
-              loadChart(c);
+              <NewClientDialog
+                onCreated={(c) => {
+                  setClients((prev) => [c, ...prev]);
+                  loadChart(c);
+                }}
+              >
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Plus className="h-3.5 w-3.5" /> New
+                </Button>
+              </NewClientDialog>
+            </div>
+          </header>
+
+          <label className="sr-only" htmlFor="client-select">
+            Select a client
+          </label>
+          <select
+            id="client-select"
+            className="panel data w-full rounded px-2 py-1.5 text-[rgb(var(--ivory))]"
+            value={client?.id ?? ""}
+            onChange={(e) => {
+              const next = clients?.find((c) => c.id === e.target.value);
+              if (next) loadChart(next);
             }}
           >
-            <Button variant="ghost" size="sm" className="gap-1.5">
-              <Plus className="h-3.5 w-3.5" /> New
-            </Button>
-          </NewClientDialog>
-        </div>
-      </header>
+            <option value="">Choose a client</option>
+            {clients?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.fullName}
+              </option>
+            ))}
+          </select>
 
-      <label className="sr-only" htmlFor="client-select">
-        Select a client
-      </label>
-      <select
-        id="client-select"
-        className="panel data w-full rounded px-2 py-1.5 text-[rgb(var(--ivory))]"
-        value={client?.id ?? ""}
-        onChange={(e) => {
-          const next = clients?.find((c) => c.id === e.target.value);
-          if (next) loadChart(next);
-        }}
-      >
-        <option value="">Choose a client</option>
-        {clients?.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.fullName}
-          </option>
-        ))}
-      </select>
+          {status === "error" && (
+            <p className="text-[rgb(var(--vermilion))]">
+              {error} Check the birth time and place, then load the client
+              again.
+            </p>
+          )}
 
-      {status === "error" && (
-        <p className="text-[rgb(var(--vermilion))]">
-          {error} Check the birth time and place, then load the client again.
-        </p>
-      )}
+          {status === "loading" && (
+            <div className="py-10 h-full flex flex-1 flex-col items-center justify-center gap-2 text-center text-[rgb(var(--muted))]">
+              <PanelLoading label="Generating Birth Chart" />
+            </div>
+          )}
 
-      {status === "loading" && (
-        <div className="py-10 h-full flex flex-1 flex-col items-center justify-center gap-2 text-center text-[rgb(var(--muted))]">
-          <PanelLoading label="Generating Birth Chart" />
-        </div>
-      )}
+          {!natal && status !== "loading" && (
+            <div className="min-h-[280px] flex-1">
+              <PanelEmpty
+                mark="chart"
+                title="No chart yet"
+                line="Pick a client above. Everything else on screen fills in from here."
+              />
+            </div>
+          )}
+          {natal && (
+            <>
+              <div className="data flex items-center gap-2 text-[11px] text-[rgb(var(--muted))]">
+                <CheatSheetTooltip {...GLOSSARY.ayanamsha}>
+                  <span>{natal.ayanamsha}</span>
+                </CheatSheetTooltip>
+                {natal.isApproximate && (
+                  <Badge className="border-[rgb(var(--vermilion))] bg-transparent text-[rgb(var(--vermilion))]">
+                    Approximate positions
+                  </Badge>
+                )}
+              </div>
 
-      {!natal && status !== "loading" && (
-        <div className="min-h-[280px] flex-1">
-          <PanelEmpty
-            mark="chart"
-            title="No chart yet"
-            line="Pick a client above. Everything else on screen fills in from here."
-          />
-        </div>
-      )}
-      {natal && (
-        <>
-          <div className="data flex items-center gap-2 text-[11px] text-[rgb(var(--muted))]">
-            <CheatSheetTooltip {...GLOSSARY.ayanamsha}>
-              <span>{natal.ayanamsha}</span>
-            </CheatSheetTooltip>
-            {natal.isApproximate && (
-              <Badge className="border-[rgb(var(--vermilion))] bg-transparent text-[rgb(var(--vermilion))]">
-                Approximate positions
-              </Badge>
-            )}
-          </div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">{vargaTabs}</div>
+                {chartToggle}
+              </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex-1">{vargaTabs}</div>
-            {chartToggle}
-          </div>
+              <NorthIndianChart
+                chart={natal.charts[activeVarga]}
+                active={active}
+                className="w-full shrink-0"
+              />
 
-          <NorthIndianChart
-            chart={natal.charts[activeVarga]}
-            active={active}
-            className="w-full shrink-0"
-          />
+              <p className="data text-center text-[10px] text-[rgb(var(--muted))]">
+                {VARGA_LABEL[activeVarga]} &middot;{" "}
+                {natal.charts[activeVarga].ascendantSign} rising
+              </p>
 
-          <p className="data text-center text-[10px] text-[rgb(var(--muted))]">
-            {VARGA_LABEL[activeVarga]} &middot;{" "}
-            {natal.charts[activeVarga].ascendantSign} rising
-          </p>
-
-          {/*
+              {/*
             A fast-moving lagna means the recorded birth time, not the ephemeris,
             is the limiting factor. Half a degree per minute is roughly one D60
             division per minute, so the warning escalates with the varga on screen.
           */}
-          {natal.ascendantDriftPerMinute > 0.25 && (
-            <p className="border-l-2 border-[rgb(var(--vermilion))] pl-2 text-[11px] text-[rgb(var(--muted))]">
-              The lagna moves {natal.ascendantDriftPerMinute.toFixed(2)}&deg;
-              per minute here.
-              {activeVarga === "D60"
-                ? " At that rate a D60 division passes in about a minute - treat this chart as indicative only unless the birth time is exact to the second."
-                : " A minute of error in the birth time shifts the rising degree noticeably. Worth confirming the time before reading fine divisions."}
-            </p>
+              {natal.ascendantDriftPerMinute > 0.25 && (
+                <p className="border-l-2 border-[rgb(var(--vermilion))] pl-2 text-[11px] text-[rgb(var(--muted))]">
+                  The lagna moves {natal.ascendantDriftPerMinute.toFixed(2)}
+                  &deg; per minute here.
+                  {activeVarga === "D60"
+                    ? " At that rate a D60 division passes in about a minute - treat this chart as indicative only unless the birth time is exact to the second."
+                    : " A minute of error in the birth time shifts the rising degree noticeably. Worth confirming the time before reading fine divisions."}
+                </p>
+              )}
+
+              <DashaProgress />
+
+              <div className="flex items-center gap-1">
+                <HistoryDrawer />
+                <BirthTimeDialog>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 justify-start gap-2"
+                  >
+                    <Clock3 className="h-3.5 w-3.5" /> Birth time
+                  </Button>
+                </BirthTimeDialog>
+
+                <HouseAnalysisDialog
+                  chart={natal.charts.D1}
+                  reading={reading!}
+                  clientId={client!.id}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 justify-start gap-2"
+                  >
+                    <Grid3x3 className="h-3.5 w-3.5" /> Houses
+                  </Button>
+                </HouseAnalysisDialog>
+                <MedicalDialog
+                  regions={reading!.medical}
+                  note={reading!.medicalNote}
+                  depth={reading!.entitlements.depth}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 justify-start gap-2"
+                  >
+                    <HeartPulse className="h-3.5 w-3.5" /> Body map
+                  </Button>
+                </MedicalDialog>
+              </div>
+            </>
           )}
-
-          <DashaProgress />
-
-          <div className="flex items-center gap-1">
-            <HistoryDrawer />
-            <BirthTimeDialog>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex-1 justify-start gap-2"
-              >
-                <Clock3 className="h-3.5 w-3.5" /> Birth time
-              </Button>
-            </BirthTimeDialog>
-
-            <HouseAnalysisDialog
-              chart={natal.charts.D1}
-              reading={reading!}
-              clientId={client!.id}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex-1 justify-start gap-2"
-              >
-                <Grid3x3 className="h-3.5 w-3.5" /> Houses
-              </Button>
-            </HouseAnalysisDialog>
-            <MedicalDialog
-              regions={reading!.medical}
-              note={reading!.medicalNote}
-              depth={reading!.entitlements.depth}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex-1 justify-start gap-2"
-              >
-                <HeartPulse className="h-3.5 w-3.5" /> Body map
-              </Button>
-            </MedicalDialog>
-          </div>
-        </>
-      )}
+        </div>
+      </ScrollArea>
     </section>
   );
 }
