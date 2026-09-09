@@ -9,6 +9,7 @@ import type { PublicTopic, Teaser } from "@/types/reading";
 import { AnswerCard } from "@/components/AnswerCard";
 import { AnalysisSection } from "@/components/AnalysisSection";
 import { LockedCard } from "@/components/LockedCard";
+import { PanelLoading } from "@/components/PanelLoading";
 import { ConfidentialGate } from "@/components/ConfidentialGate";
 import { LongevityPanel } from "@/components/LongevityPanel";
 import { MedicalPanel } from "@/components/medical/MedicalPanel";
@@ -16,6 +17,7 @@ import { ConsultationNoteComposer } from "@/components/ConsultationNoteComposer"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { PanelEmpty } from "../PanelEmpty";
 
 /**
  * The twenty topics, answered.
@@ -25,16 +27,33 @@ import { Badge } from "@/components/ui/badge";
  * nothing in the page for a reader to uncover.
  */
 export function TopicsPanel() {
-  const { natal, client, reading, activeTab, setTab, confidentialUnlocked } =
-    useWorkstation();
+  const {
+    natal,
+    client,
+    reading,
+    status,
+    activeTab,
+    setTab,
+    confidentialUnlocked,
+  } = useWorkstation();
   const [openTopic, setOpenTopic] = useState<number | null>(null);
+
+  if (status === "loading") {
+    return (
+      <section className="panel @container h-full w-full">
+        <PanelLoading label="Working through the topics" />
+      </section>
+    );
+  }
 
   if (!natal || !reading || !client) {
     return (
-      <section className="panel @container flex h-full w-full items-center justify-center p-3 text-[rgb(var(--muted))]">
-        <p className="max-w-[26ch] text-center">
-          The twenty topics fill in from the chart. Load a client to start.
-        </p>
+      <section className="panel @container h-full w-full">
+        <PanelEmpty
+          mark="list"
+          title="Twenty questions"
+          line="Career, marriage, money, health and the rest — answered from the chart, with dates."
+        />
       </section>
     );
   }
@@ -43,18 +62,38 @@ export function TopicsPanel() {
     Boolean(entry && "locked" in entry && entry.locked);
 
   return (
-    <section className="panel @container flex h-full w-full flex-grow flex-col overflow-hidden">
+    <section className="panel @container flex h-full w-full flex-col overflow-hidden">
       <Tabs
         value={activeTab}
         onValueChange={(v) => setTab(v as TabKey)}
         className="flex h-full flex-col"
       >
-        <TabsList className="grid grid-cols-1 gap-1 bg-transparent p-2 @[20rem]:grid-cols-2 @[32rem]:grid-cols-4 min-h-fit">
+        {/* Container-Based Mobile/Small Select Dropdown */}
+        <div className="p-2 @[28rem]:hidden">
+          <select
+            value={activeTab}
+            onChange={(e) => setTab(e.target.value as TabKey)}
+            className="panel data w-full rounded px-2 py-1.5 text-[rgb(var(--ivory))]"
+          >
+            {TAB_GROUPS.map((g) => (
+              <option
+                key={g.key}
+                value={g.key}
+                className="bg-[rgb(var(--background))] text-[rgb(var(--ivory))]"
+              >
+                {g.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Container-Based Desktop Grid TabsList */}
+        <TabsList className="hidden grid-cols-1 gap-1 bg-transparent p-2 @[28rem]:grid @[28rem]:grid-cols-4">
           {TAB_GROUPS.map((g) => (
             <TabsTrigger
               key={g.key}
               value={g.key}
-              className="data min-w-0 truncate text-[10px] p-1 leading-tight"
+              className="data min-w-0 p-2.5 truncate text-[10px] leading-tight"
             >
               {g.label}
             </TabsTrigger>

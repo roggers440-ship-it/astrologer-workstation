@@ -54,7 +54,7 @@ export function PlanBadge() {
           paid
             ? {
                 background: `rgb(${accent})`,
-                color: "rgb(var(--ivory))",
+                color: "#ffffff",
                 border: `1px solid rgb(${accent})`,
               }
             : {

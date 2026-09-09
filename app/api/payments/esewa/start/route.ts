@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { appOrigin } from '@/lib/app-url';
 import { requireSession } from '@/lib/session';
 import { supabaseAdmin } from '@/lib/supabase';
 import { esewaConfig, newTransactionId, priceFor, signRequest } from '@/lib/esewa';
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
-    const origin = new URL(req.url).origin;
+    const origin = appOrigin(req);
 
     return NextResponse.json({
       gateway,

@@ -56,7 +56,7 @@ export function LockedCard({
 
       <Link href="/plans" className="mt-3 inline-block">
         <Button variant="outline" size="sm" className="gap-2">
-          <Sparkles className="h-3.5 w-3.5" /> Open with {plan.label}
+          <Sparkles className="h-3.5 w-3.5" /> Upgrade to {plan.label} Plan
         </Button>
       </Link>
     </section>

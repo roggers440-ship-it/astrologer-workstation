@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 
 /**
  * IANA time zone picker.
@@ -12,31 +12,19 @@ import { Check, ChevronsUpDown } from "lucide-react";
  * "Asia/Kolkata" and a fixed +05:30 offset are not interchangeable for a birth
  * decades ago.
  */
-const ALIASES: Record<string, string> = {
-  "Asia/Calcutta": "Asia/Kolkata",
-  "Asia/Katmandu": "Asia/Kathmandu",
-  "Asia/Rangoon": "Asia/Yangon",
-  "Asia/Saigon": "Asia/Ho_Chi_Minh",
-  "Europe/Kiev": "Europe/Kyiv",
-  "Asia/Dacca": "Asia/Dhaka",
-};
-
 function allZones(): string[] {
-  let zones: string[] = [];
   try {
-    const fn = (
-      Intl as unknown as { supportedValuesOf?: (k: string) => string[] }
-    ).supportedValuesOf;
-    if (fn) zones = fn("timeZone");
+    const fn = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf;
+    if (fn) return fn('timeZone');
   } catch {
-    /* falls through */
+    /* falls through to the short list below */
   }
-
-  if (zones.length === 0) zones = Object.values(ALIASES);
-
-  // Ensure the modern spelling is present even when the runtime lists the old one.
-  const merged = new Set(zones.map((z) => ALIASES[z] ?? z));
-  return [...merged].sort();
+  return [
+    'Asia/Kathmandu', 'Asia/Kolkata', 'Asia/Dhaka', 'Asia/Karachi', 'Asia/Colombo',
+    'Asia/Dubai', 'Asia/Singapore', 'Asia/Tokyo', 'Europe/London', 'Europe/Paris',
+    'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+    'Australia/Sydney', 'UTC',
+  ];
 }
 
 export function TimezoneCombobox({
@@ -49,40 +37,44 @@ export function TimezoneCombobox({
   name: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const box = useRef<HTMLDivElement>(null);
   const zones = useMemo(allZones, []);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase().replace(/\s+/g, "_");
+    const q = query.trim().toLowerCase().replace(/\s+/g, '_');
     if (!q) return zones.slice(0, 60);
     return zones.filter((z) => z.toLowerCase().includes(q)).slice(0, 60);
   }, [zones, query]);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
-      if (box.current && !box.current.contains(e.target as Node))
-        setOpen(false);
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
   }, []);
 
-  /* Current offset, so a wrong pick is visible before it silently moves the
-     ascendant by hours. */
-  const offset = useMemo(() => {
-    if (!value) return null;
+  /*
+   * Current offset, so a wrong pick is visible before it silently moves the
+   * ascendant by hours.
+   *
+   * Computed in an effect rather than in a memo: new Date() during render is
+   * impure, and a useMemo still runs in the render path. The offset only has to
+   * be right when it is read, not on the first frame.
+   */
+  const [offset, setOffset] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!value) return setOffset(null);
     try {
-      return (
-        new Intl.DateTimeFormat("en", {
-          timeZone: value,
-          timeZoneName: "shortOffset",
-        })
+      setOffset(
+        new Intl.DateTimeFormat('en', { timeZone: value, timeZoneName: 'shortOffset' })
           .formatToParts(new Date())
-          .find((p) => p.type === "timeZoneName")?.value ?? null
+          .find((p) => p.type === 'timeZoneName')?.value ?? null,
       );
     } catch {
-      return null;
+      setOffset(null);
     }
   }, [value]);
 
@@ -96,13 +88,9 @@ export function TimezoneCombobox({
         aria-expanded={open}
         className="data flex w-full items-center justify-between rounded border border-[rgb(var(--hairline))] px-2 py-1.5 text-left text-[rgb(var(--ivory))]"
       >
-        <span className={value ? "" : "text-[rgb(var(--muted))]"}>
-          {value || "Choose a time zone"}
-          {offset && (
-            <span className="ml-2 text-[10px] text-[rgb(var(--muted))]">
-              {offset}
-            </span>
-          )}
+        <span className={value ? '' : 'text-[rgb(var(--muted))]'}>
+          {value || 'Choose a time zone'}
+          {offset && <span className="ml-2 text-[10px] text-[rgb(var(--muted))]">{offset}</span>}
         </span>
         <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--muted))]" />
       </button>
@@ -120,9 +108,7 @@ export function TimezoneCombobox({
 
           <ul className="max-h-56 overflow-y-auto">
             {filtered.length === 0 && (
-              <li className="px-2 py-2 text-[rgb(var(--muted))]">
-                No zone matches that.
-              </li>
+              <li className="px-2 py-2 text-[rgb(var(--muted))]">No zone matches that.</li>
             )}
             {filtered.map((z) => (
               <li key={z}>
@@ -131,14 +117,12 @@ export function TimezoneCombobox({
                   onClick={() => {
                     onChange(z);
                     setOpen(false);
-                    setQuery("");
+                    setQuery('');
                   }}
                   className="data flex w-full items-center justify-between px-2 py-1 text-left text-[rgb(var(--ivory))] hover:bg-[rgb(var(--hairline))]/40"
                 >
                   {z}
-                  {z === value && (
-                    <Check className="h-3 w-3 text-[rgb(var(--brass))]" />
-                  )}
+                  {z === value && <Check className="h-3 w-3 text-[rgb(var(--brass))]" />}
                 </button>
               </li>
             ))}

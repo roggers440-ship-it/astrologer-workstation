@@ -1,23 +1,39 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import DivineLoader from "@/components/DivineLoader";
-import { ClientPanel } from "@/components/panels/ClientPanel";
-import { PatternsPanel } from "@/components/panels/PatternsPanel";
-import { TopicsPanel } from "@/components/panels/TopicsPanel";
+import { useEffect, useState } from 'react';
+import DivineLoader from '@/components/DivineLoader';
+import { useWorkstation } from '@/store/chart-store';
+import { ClientPanel } from '@/components/panels/ClientPanel';
+import { PatternsPanel } from '@/components/panels/PatternsPanel';
+import { TopicsPanel } from '@/components/panels/TopicsPanel';
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
-} from "@/components/ui/resizable";
+} from '@/components/ui/resizable';
 
 export default function DashboardClient() {
-  const [isLoading, setIsLoading] = useState(true);
+  const loadClients = useWorkstation((s) => s.loadClients);
+  const clientsLoaded = useWorkstation((s) => s.clientsLoaded);
 
-  if (isLoading) {
+  /* The animation finishing is one condition; the data arriving is the other. */
+  const [introDone, setIntroDone] = useState(false);
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
+
+  /*
+   * Both conditions, deliberately. Waiting only on the animation shows an empty
+   * workstation while the client list is still in flight; waiting only on the
+   * data cuts the animation off mid-draw on a fast connection. Whichever is
+   * slower wins, and the splash covers the whole start-up rather than a fixed
+   * number of seconds.
+   */
+  if (!introDone || !clientsLoaded) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--ink))]">
-        <DivineLoader onComplete={() => setIsLoading(false)} />
+        <DivineLoader onComplete={() => setIntroDone(true)} />
       </div>
     );
   }

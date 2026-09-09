@@ -65,9 +65,9 @@ export const TOPICS: Topic[] = [
 
 export const TAB_GROUPS = [
   { key: 'life', label: 'Life Directions', short:"Life", topicIds: [1, 2, 3, 7, 10, 15, 16] },
-  { key: 'relationships', label: 'Relationships & Family', short:"Family", topicIds: [4, 5, 6, 13] },
-  { key: 'psychology', label: 'Psychology & Mindset', short:"Mind", topicIds: [11, 12, 14, 19, 20] },
-  { key: 'health', label: 'Health & Deep Karma', short:"Health", topicIds: [8, 9, 17, 18] },
+  { key: 'relationships', label: 'Relationships', short:"Family", topicIds: [4, 5, 6, 13] },
+  { key: 'psychology', label: 'Psychology', short:"Mind", topicIds: [11, 12, 14, 19, 20] },
+  { key: 'health', label: 'Health', short:"Health", topicIds: [8, 9, 17, 18] },
 ] as const;
 
 export type TabKey = (typeof TAB_GROUPS)[number]['key'];

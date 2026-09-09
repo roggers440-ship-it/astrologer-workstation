@@ -3,7 +3,7 @@ import {
   DUSTHANA_HOUSES, KENDRA_HOUSES, SIGNS, TRIKONA_HOUSES,
   housesAspectedBy, housesRuledBy, lordOfHouse, signIndex,
 } from '@/lib/vedic-constants';
-import { hasExchange, isCombust, mutualAspect, ordinal } from '@/lib/rule-engine';
+import { hasExchange, isCombust, mutualAspect, occupants, ordinal } from '@/lib/rule-engine';
 import { computeAshtakavarga, type Ashtakavarga } from '@/lib/ashtakavarga';
 import { fullDignity, planetStrength } from '@/lib/strength';
 import { pratyantardashas } from '@/lib/dasha';
@@ -57,7 +57,9 @@ export function buildContext(natal: NatalChart, now = new Date()): AnswerContext
 
 export const at = (c: ChartData, p: PlanetName) => c.placements.find((x) => x.planet === p);
 export const lord = (c: ChartData, h: HouseNumber) => lordOfHouse(h, c.ascendantSign);
-export const occupants = (c: ChartData, h: HouseNumber) => c.placements.filter((p) => p.house === h);
+/* Re-exported rather than reimplemented. Two identical definitions in two
+   modules is how they eventually stop being identical. */
+export { occupants };
 
 export function aspectors(c: ChartData, h: HouseNumber): PlanetName[] {
   return c.placements.filter((p) => p.house !== h && housesAspectedBy(p.planet, p.house).includes(h)).map((p) => p.planet);
@@ -92,9 +94,22 @@ export function houseSupport(ctx: AnswerContext, house: HouseNumber): number {
   }
   if (isCombust(chart, ruler)) score -= 8;
 
+  /*
+   * Occupants counted by condition, not just by nature.
+   *
+   * A flat +5 for any benefic meant a debilitated Venus in the 10th raised the
+   * score exactly as much as an exalted one - the single most important fact
+   * about that house, ignored. A fallen benefic helps very little and a dignified
+   * malefic does real work, so both are scaled by dignity.
+   */
   const occ = occupants(chart, house);
-  score += occ.filter((o) => BENEFICS.includes(o.planet)).length * 5;
-  score -= occ.filter((o) => MALEFICS.includes(o.planet)).length * 4;
+  for (const o of occ) {
+    const dig = fullDignity(chart, o.planet).score;
+    const base = BENEFICS.includes(o.planet) ? 5 : -4;
+    /* Dignity moves the contribution between roughly a quarter and double. */
+    const factor = Math.max(0.25, Math.min(2, 1 + dig / 5));
+    score += BENEFICS.includes(o.planet) ? base * factor : base / factor;
+  }
 
   const asp = aspectors(chart, house);
   if (asp.includes('Jupiter')) score += 7;
